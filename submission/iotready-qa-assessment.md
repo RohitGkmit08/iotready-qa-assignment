@@ -153,3 +153,100 @@ Collect additional details from customer and attempt reproduction under matching
 - Checkout flow is working
 - About page is working
 - Add/remove cart functionality works correctly from product card
+
+
+## Part 4 — Investigation Scenario
+
+### Initial Observation
+
+- Issue happens only on mobile app
+- Web dashboard continues showing live data
+- Issue starts after app stays in background for some time
+- Restarting the app fixes the problem temporarily
+
+This suggests the backend is likely working correctly and the issue may be related to the mobile app lifecycle, caching, polling, or websocket reconnection.
+
+---
+
+### Investigation Plan
+
+#### 1. Reproduce the issue consistently
+
+Steps:
+- Open mobile app and monitor live sensor readings
+- Send app to background for a few minutes
+- Trigger new sensor events from backend tool
+- Compare mobile app data vs web dashboard data
+
+Expected evidence:
+- Mobile app stops updating while web app continues receiving live data
+
+---
+
+#### 2. Check whether API/WebSocket requests stop after backgrounding
+
+Using DevTools/logs:
+- Verify whether polling requests continue after app resumes
+- Verify websocket connection status after returning from background
+
+Possible confirmation:
+- No new requests after app resumes
+- Websocket connection remains disconnected/stale
+
+Possible conclusion:
+- App is failing to reconnect or restart polling after background state
+
+---
+
+#### 3. Check whether stale data is coming from local cache
+
+Steps:
+- Compare timestamps of sensor readings
+- Force refresh data manually if possible
+
+Possible confirmation:
+- Cached data remains visible until app restart
+- Fresh backend data exists but UI is not updating
+
+Possible conclusion:
+- Cache invalidation or state refresh issue
+
+---
+
+#### 4. Verify whether issue happens on multiple devices/platforms
+
+Steps:
+- Test on different OS versions/devices
+- Compare Android vs iOS behavior if available
+
+Possible confirmation:
+- Issue isolated to one platform/device type
+
+Possible conclusion:
+- OS-specific background lifecycle handling issue
+
+---
+
+#### 5. Check app behavior during network reconnect
+
+Steps:
+- Background app
+- Toggle network/Wi-Fi
+- Resume app and trigger new events
+
+Possible confirmation:
+- App does not recover automatically after reconnect
+
+Possible conclusion:
+- Missing reconnection handling after network interruption
+
+---
+
+### Most Likely Root Cause
+
+Most likely issue is that the mobile app stops receiving live updates after being backgrounded and does not properly reconnect/restart data synchronization when resumed.
+
+
+## Part 5 — One Paragraph
+
+One project I’m genuinely proud of testing was my Jira-style admin application built with React. I wrote both unit and integration tests using React Testing Library and Vitest, mainly around authentication and project management flows. I tested scenarios like login validation, failed and successful authentication, protected navigation, auth token storage, retry behavior after failed login, project creation/edit flows, API failure handling, modal interactions, and form validation states. I also mocked API layers and routing behavior to isolate components properly and verify user-facing behavior instead of implementation details. Working on these tests helped me improve how I think about real user flows, edge cases, and frontend reliability.
